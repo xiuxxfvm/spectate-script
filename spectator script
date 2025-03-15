@@ -1,0 +1,165 @@
+local player = game.Players.LocalPlayer
+local camera = game.Workspace.CurrentCamera
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.25, 0, 0.3, 0)
+frame.Position = UDim2.new(0.37, 0, 0.35, 0)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BackgroundTransparency = 0.5
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- UIStroke for Frame
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 3
+stroke.Color = Color3.fromRGB(60, 60, 60)
+stroke.Parent = frame
+
+-- UICorner for Frame
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0.1, 0)
+corner.Parent = frame
+
+-- Textbox (For Username/Display Name Input)
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(0.8, 0, 0.2, 0)
+textBox.Position = UDim2.new(0.1, 0, 0.05, 0)
+textBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textBox.PlaceholderText = "Enter Username or Display Name"
+textBox.TextScaled = true
+textBox.Font = Enum.Font.SourceSans
+textBox.Parent = frame
+
+local textBoxCorner = Instance.new("UICorner")
+textBoxCorner.CornerRadius = UDim.new(0.2, 0)
+textBoxCorner.Parent = textBox
+
+-- Toggle Background (Track)
+local toggleTrack = Instance.new("Frame")
+toggleTrack.Size = UDim2.new(0.5, 0, 0.15, 0)
+toggleTrack.Position = UDim2.new(0.25, 0, 0.3, 0)
+toggleTrack.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleTrack.Parent = frame
+
+local toggleTrackCorner = Instance.new("UICorner")
+toggleTrackCorner.CornerRadius = UDim.new(1, 0)
+toggleTrackCorner.Parent = toggleTrack
+
+-- Toggle Button (Slider)
+local toggleButton = Instance.new("Frame")
+toggleButton.Size = UDim2.new(0.45, 0, 1, 0)
+toggleButton.Position = UDim2.new(0, 0, 0, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+toggleButton.Parent = toggleTrack
+
+local toggleButtonCorner = Instance.new("UICorner")
+toggleButtonCorner.CornerRadius = UDim.new(1, 0)
+toggleButtonCorner.Parent = toggleButton
+
+-- Profile Display (Hidden by default)
+local profileFrame = Instance.new("Frame")
+profileFrame.Size = UDim2.new(1, 0, 0.5, 0)
+profileFrame.Position = UDim2.new(0, 0, 0.5, 0)
+profileFrame.BackgroundTransparency = 1
+profileFrame.Visible = false
+profileFrame.Parent = frame
+
+-- Profile Picture (ImageLabel)
+local profilePic = Instance.new("ImageLabel")
+profilePic.Size = UDim2.new(0.3, 0, 0.6, 0)
+profilePic.Position = UDim2.new(0.05, 0, 0.2, 0)
+profilePic.BackgroundTransparency = 1
+profilePic.Parent = profileFrame
+
+-- Username Label
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Size = UDim2.new(0.6, 0, 0.3, 0)
+nameLabel.Position = UDim2.new(0.4, 0, 0.1, 0)
+nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+nameLabel.TextScaled = true
+nameLabel.BackgroundTransparency = 1
+nameLabel.Font = Enum.Font.SourceSansBold
+nameLabel.Parent = profileFrame
+
+-- Account Age Label
+local ageLabel = Instance.new("TextLabel")
+ageLabel.Size = UDim2.new(0.6, 0, 0.3, 0)
+ageLabel.Position = UDim2.new(0.4, 0, 0.5, 0)
+ageLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+ageLabel.TextScaled = true
+ageLabel.BackgroundTransparency = 1
+ageLabel.Font = Enum.Font.SourceSans
+ageLabel.Parent = profileFrame
+
+-- Creator Label
+local creatorLabel = Instance.new("TextLabel")
+creatorLabel.Size = UDim2.new(1, 0, 0.1, 0)
+creatorLabel.Position = UDim2.new(0, 0, 0.9, 0)
+creatorLabel.BackgroundTransparency = 1
+creatorLabel.Text = "Made by robloxsploit"
+creatorLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+creatorLabel.TextScaled = true
+creatorLabel.Font = Enum.Font.SourceSans
+creatorLabel.Parent = frame
+
+-- Spectate Functionality
+local isOn = false
+local defaultCameraSubject = camera.CameraSubject
+
+local function findClosestPlayer(inputName)
+    inputName = string.lower(inputName)
+    for _, p in pairs(game.Players:GetPlayers()) do
+        local username = string.lower(p.Name)
+        local displayName = string.lower(p.DisplayName)
+        if string.find(username, inputName) or string.find(displayName, inputName) then
+            return p
+        end
+    end
+    return nil
+end
+
+local function updateProfileInfo(targetPlayer)
+    if targetPlayer then
+        profilePic.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. targetPlayer.UserId .. "&width=150&height=150&format=png"
+        nameLabel.Text = targetPlayer.DisplayName .. " (@" .. targetPlayer.Name .. ")"
+
+        local accountAgeDays = targetPlayer.AccountAge
+        local ageText = "Account Age: " .. math.floor(accountAgeDays) .. " days"
+
+        ageLabel.Text = ageText
+        profileFrame.Visible = true
+    else
+        textBox.Text = "Player not found!"
+        profileFrame.Visible = false
+    end
+end
+
+local function spectatePlayer(inputName)
+    local targetPlayer = findClosestPlayer(inputName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
+        camera.CameraSubject = targetPlayer.Character:FindFirstChild("Humanoid")
+        updateProfileInfo(targetPlayer)
+    else
+        textBox.Text = "Player not found!"
+        profileFrame.Visible = false
+    end
+end
+
+toggleTrack.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isOn = not isOn
+        if isOn then
+            toggleButton:TweenPosition(UDim2.new(0.55, 0, 0, 0), "Out", "Quad", 0.2, true)
+            spectatePlayer(textBox.Text)
+        else
+            toggleButton:TweenPosition(UDim2.new(0, 0, 0, 0), "Out", "Quad", 0.2, true)
+            camera.CameraSubject = defaultCameraSubject
+            profileFrame.Visible = false
+        end
+    end
+end)
